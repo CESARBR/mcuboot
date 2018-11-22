@@ -22,7 +22,6 @@
 #include <drivers/system_timer.h>
 #include <usb/usb_device.h>
 #include <soc.h>
-
 #include "target.h"
 
 #define MCUBOOT_LOG_LEVEL BOOTUTIL_LOG_LEVEL_DEBUG
@@ -40,6 +39,8 @@ const struct boot_uart_funcs boot_funcs = {
     .write = console_write
 };
 #endif
+
+#include "storage.h"
 
 void os_heap_init(void);
 
@@ -104,6 +105,8 @@ void main(void)
 {
     struct boot_rsp rsp;
     int rc;
+    int8_t retfs;
+    struct net_settings curr_settings, rd_settings;
 
     BOOT_LOG_INF("Starting bootloader");
 
@@ -114,6 +117,33 @@ void main(void)
         while (1)
             ;
     }
+
+    retfs = storage_init();
+    if (retfs) {
+        BOOT_LOG_ERR("Unable to init nvs");
+        while (1)
+	    ;
+    }
+
+    retfs = storage_get(STORAGE_KEY_NET_SETTINGS, &curr_settings);
+    if (retfs) {
+        BOOT_LOG_ERR("Unable to read nvs");
+        curr_settings.setup= true;
+        retfs = storage_set(STORAGE_KEY_NET_SETTINGS, &curr_settings);
+        if (retfs)
+            BOOT_LOG_ERR("Unable to store nvs");
+    }
+
+    retfs = storage_get(STORAGE_KEY_NET_SETTINGS, &rd_settings);
+    if (retfs) {
+        BOOT_LOG_ERR("Unable to read nvs");
+        while (1)
+            ;
+
+    }
+
+    BOOT_LOG_INF("Mcuboot flash offset area: %x", MCUBOOT_STORAGE_OFFSET);
+    BOOT_LOG_INF("Boot area stored value = %d", rd_settings.setup);
 
 #ifdef CONFIG_MCUBOOT_SERIAL
 
