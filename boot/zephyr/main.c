@@ -25,6 +25,7 @@
 
 #include "target.h"
 
+#define MCUBOOT_LOG_LEVEL BOOTUTIL_LOG_LEVEL_DEBUG
 #include "bootutil/bootutil_log.h"
 #include "bootutil/image.h"
 #include "bootutil/bootutil.h"
