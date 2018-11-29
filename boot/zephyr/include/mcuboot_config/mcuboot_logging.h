@@ -1,52 +1,82 @@
 /*
- * Copyright (c) 2018 Runtime Inc
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
+#include <zephyr.h>
 
 #ifndef __MCUBOOT_LOGGING_H__
 #define __MCUBOOT_LOGGING_H__
 
-#ifndef __BOOTSIM__
+#define BOOTUTIL_LOG_LEVEL_OFF     1
+#define BOOTUTIL_LOG_LEVEL_ERROR   2
+#define BOOTUTIL_LOG_LEVEL_WARNING 3
+#define BOOTUTIL_LOG_LEVEL_INFO    4
+#define BOOTUTIL_LOG_LEVEL_DEBUG   5
 
-/*
- * When building for targets running Zephyr, delegate to its native
- * logging subsystem.
- *
- * In this case:
- *
- * - MCUBOOT_LOG_LEVEL determines SYS_LOG_LEVEL,
- * - MCUBOOT_LOG_ERR() and friends are SYS_LOG_ERR() etc.
- * - SYS_LOG_DOMAIN is unconditionally set to "MCUBOOT"
- */
-#define MCUBOOT_LOG_LEVEL_OFF      SYS_LOG_LEVEL_OFF
-#define MCUBOOT_LOG_LEVEL_ERROR    SYS_LOG_LEVEL_ERROR
-#define MCUBOOT_LOG_LEVEL_WARNING  SYS_LOG_LEVEL_WARNING
-#define MCUBOOT_LOG_LEVEL_INFO     SYS_LOG_LEVEL_INFO
-#define MCUBOOT_LOG_LEVEL_DEBUG    SYS_LOG_LEVEL_DEBUG
+#define MCUBOOT_LOG_LEVEL_OFF      BOOTUTIL_LOG_LEVEL_OFF
+#define MCUBOOT_LOG_LEVEL_ERROR    BOOTUTIL_LOG_LEVEL_ERROR
+#define MCUBOOT_LOG_LEVEL_WARNING  BOOTUTIL_LOG_LEVEL_WARNING
+#define MCUBOOT_LOG_LEVEL_INFO     BOOTUTIL_LOG_LEVEL_INFO
+#define MCUBOOT_LOG_LEVEL_DEBUG    BOOTUTIL_LOG_LEVEL_DEBUG
 
-/* Treat MCUBOOT_LOG_LEVEL equivalently to SYS_LOG_LEVEL. */
 #ifndef MCUBOOT_LOG_LEVEL
-#define MCUBOOT_LOG_LEVEL CONFIG_SYS_LOG_DEFAULT_LEVEL
-#elif (MCUBOOT_LOG_LEVEL < CONFIG_SYS_LOG_OVERRIDE_LEVEL)
-#undef MCUBOOT_LOG_LEVEL
-#define MCUBOOT_LOG_LEVEL CONFIG_SYS_LOG_OVERRIDE_LEVEL
+#define MCUBOOT_LOG_LEVEL BOOTUTIL_LOG_LEVEL_INFO
 #endif
 
-#ifndef SYS_LOG_LEVEL
-#define SYS_LOG_LEVEL MCUBOOT_LOG_LEVEL
+#if !((MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_OFF) && \
+      (MCUBOOT_LOG_LEVEL <= MCUBOOT_LOG_LEVEL_DEBUG))
+#error "Invalid MCUBOOT_LOG_LEVEL config."
 #endif
 
-#undef SYS_LOG_DOMAIN
-#define SYS_LOG_DOMAIN "MCUBOOT"
+#if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_ERROR
+#define MCUBOOT_LOG_ERR(_fmt, ...)                                      \
+    do {                                                                \
+        printk("[ERR] " _fmt "\n", ##__VA_ARGS__);                      \
+    } while (0)
+#else
+#define MCUBOOT_LOG_ERR(...) IGNORE(__VA_ARGS__)
+#endif
 
-#define MCUBOOT_LOG_ERR(...) SYS_LOG_ERR(__VA_ARGS__)
-#define MCUBOOT_LOG_WRN(...) SYS_LOG_WRN(__VA_ARGS__)
-#define MCUBOOT_LOG_INF(...) SYS_LOG_INF(__VA_ARGS__)
-#define MCUBOOT_LOG_DBG(...) SYS_LOG_DBG(__VA_ARGS__)
+#if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_WARNING
+#define MCUBOOT_LOG_WRN(_fmt, ...)                                      \
+    do {                                                                \
+        printk("[WRN] " _fmt "\n", ##__VA_ARGS__);                      \
+    } while (0)
+#else
+#define MCUBOOT_LOG_WRN(...) IGNORE(__VA_ARGS__)
+#endif
 
-#include <logging/sys_log.h>
+#if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_INFO
+#define MCUBOOT_LOG_INF(_fmt, ...)                                      \
+    do {                                                                \
+        printk("[INF] " _fmt "\n", ##__VA_ARGS__);                      \
+    } while (0)
+#else
+#define MCUBOOT_LOG_INF(...) IGNORE(__VA_ARGS__)
+#endif
 
-#endif /* !__BOOTSIM__ */
+#if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_DEBUG
+#define MCUBOOT_LOG_DBG(_fmt, ...)                                      \
+    do {                                                                \
+        printk("[DBG] " _fmt "\n", ##__VA_ARGS__);                      \
+    } while (0)
+#else
+#define MCUBOOT_LOG_DBG(...) IGNORE(__VA_ARGS__)
+#endif
 
-#endif /* __MCUBOOT_LOGGING_H__ */
+#endif
