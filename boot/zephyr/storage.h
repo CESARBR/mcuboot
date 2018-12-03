@@ -77,9 +77,9 @@ int8_t storage_get(enum storage_key key, struct net_settings *net_config);
 
 int8_t storage_set(enum storage_key key, const struct net_settings *net_config);
 
-// Allocating last 2 sectors of scratch area
-#define MCUBOOT_STORAGE_TOTAL	(FLASH_AREA_IMAGE_SCRATCH_OFFSET + \
-                                FLASH_AREA_IMAGE_SCRATCH_SIZE)
+// Allocating last 2 blocks of storage area
+#define MCUBOOT_STORAGE_TOTAL	(FLASH_AREA_STORAGE_OFFSET + \
+                                FLASH_AREA_STORAGE_SIZE)
 
 #define MCUBOOT_STORAGE_OFFSET  (MCUBOOT_STORAGE_TOTAL - \
                                 ( 2 * FLASH_ERASE_BLOCK_SIZE))
