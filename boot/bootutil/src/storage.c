@@ -15,7 +15,7 @@
  */
 #include <zephyr.h>
 #include <nvs/nvs.h>
-#include "storage.h"
+#include <bootutil/storage.h>
 
 /* Mininum required flash parameters */
 #define NVS_SECTOR_SIZE         FLASH_ERASE_BLOCK_SIZE
