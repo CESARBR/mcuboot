@@ -40,7 +40,7 @@ const struct boot_uart_funcs boot_funcs = {
 };
 #endif
 
-#include "storage.h"
+#include <bootutil/storage.h>
 
 MCUBOOT_LOG_MODULE_REGISTER(mcuboot);
 
