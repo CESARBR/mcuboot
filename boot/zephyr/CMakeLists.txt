@@ -91,7 +91,7 @@ endif()
 
 # Generic bootutil sources and includes.
 target_include_directories(app PRIVATE "${BOOT_DIR}/bootutil/include")
-target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/loader.c")
+target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/knot_loader.c")
 target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/bootutil_misc.c")
 target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/image_validate.c")
 target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/encrypted.c")

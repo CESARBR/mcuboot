@@ -40,7 +40,7 @@ const struct boot_uart_funcs boot_funcs = {
 };
 #endif
 
-#include <bootutil/storage.h>
+//#include <bootutil/storage.h>
 
 void os_heap_init(void);
 
@@ -105,8 +105,8 @@ void main(void)
 {
     struct boot_rsp rsp;
     int rc;
-    int8_t retfs;
-    struct net_settings curr_settings, rd_settings;
+//    int8_t retfs;
+//    struct net_settings curr_settings, rd_settings;
 
     BOOT_LOG_INF("Starting bootloader");
 
@@ -117,7 +117,7 @@ void main(void)
         while (1)
             ;
     }
-
+/*
     retfs = storage_init();
     if (retfs) {
         BOOT_LOG_ERR("Unable to init nvs");
@@ -144,7 +144,7 @@ void main(void)
 
     BOOT_LOG_INF("Mcuboot flash offset area: %x", MCUBOOT_STORAGE_OFFSET);
     BOOT_LOG_INF("Boot area stored value = %d", rd_settings.setup);
-
+*/
 #ifdef CONFIG_MCUBOOT_SERIAL
 
     struct device *detect_port;
@@ -180,7 +180,7 @@ void main(void)
     BOOT_LOG_INF("Bootloader chainload address offset: 0x%x",
                  rsp.br_image_off);
 
-    BOOT_LOG_INF("Jumping to the first image slot");
+    BOOT_LOG_INF("Jumping to selected slot");
     do_boot(&rsp);
 
     BOOT_LOG_ERR("Never should get here");
