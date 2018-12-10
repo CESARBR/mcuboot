@@ -347,6 +347,7 @@ boot_go(struct boot_rsp *rsp)
                          &BOOT_SCRATCH_AREA(&boot_data));
     assert(rc == 0);
 
+
     /* Determine the sector layout of the image slots and scratch area. */
     rc = boot_read_sectors();
     if (rc != 0) {
@@ -383,12 +384,36 @@ boot_go(struct boot_rsp *rsp)
         rc =  BOOT_EBADSTATUS;
         goto out;
     }
+
+#define STORE_NVS
+
+#ifdef STORE_NVS
+
+// Create storage key and put known value on rd_settings structure
+
+    // Try to execute app on slot 1
+    u8_t boot_slot =1;
+    retfs = storage_get(STORAGE_KEY_NET_SETTINGS, &rd_settings);
+    if (retfs) {
+        // Storage STORAGE_KEY_NET_SETTINGS  key not found
+        BOOT_LOG_ERR("Unable to read nvs");
+        // Run app on slot 1
+        rd_settings.setup = boot_slot;
+        // Create STORAGE_KEY_NET_SETTINGS key on NVS
+        retfs = storage_set(STORAGE_KEY_NET_SETTINGS, &rd_settings);
+        if (retfs)
+            BOOT_LOG_ERR("Unable to store nvs");
+    }
+
+
+#endif
+
     // Get selected slot for boot
     retfs = storage_get(STORAGE_KEY_NET_SETTINGS, &rd_settings);
     if (retfs) {
         BOOT_LOG_ERR("Unable to read nvs");
         rc =  BOOT_EBADSTATUS;
-        goto out;
+        goto out2;
 
     }
 
@@ -437,4 +462,20 @@ out:
         while (1) {}
     }
     return rc;
+out2:
+    slot =1;
+    if ((img_status[slot] == 0) &&
+	(boot_data.imgs[slot].hdr.ih_magic == IMAGE_MAGIC)) {
+        // return rc response ok
+        rc = 0;
+        // slot is ok so prepare jump
+        BOOT_LOG_INF("Slot %d selected",slot);
+        rsp->br_flash_dev_id = boot_data.imgs[slot].area->fa_device_id;
+        rsp->br_image_off = boot_img_slot_off(&boot_data, slot);
+        rsp->br_hdr = boot_img_hdr(&boot_data, slot);
+
+    } else
+        rc = BOOT_EBADSTATUS;
+
+    goto out;
 }
