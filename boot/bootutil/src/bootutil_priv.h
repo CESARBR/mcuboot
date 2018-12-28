@@ -129,7 +129,7 @@ struct boot_swap_state {
 #endif
 
 /** Number of image slots in flash; currently limited to two. */
-#define BOOT_NUM_SLOTS             2
+#define BOOT_NUM_SLOTS             3
 
 /** Maximum number of image sectors supported by the bootloader. */
 #define BOOT_STATUS_STATE_COUNT    3
