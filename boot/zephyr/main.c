@@ -13,7 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/*
+ * Copyright (c) 2019, CESAR. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <assert.h>
 #include <zephyr.h>
 #include <gpio.h>
@@ -29,6 +43,9 @@
 #include "bootutil/image.h"
 #include "bootutil/bootutil.h"
 #include "flash_map_backend/flash_map_backend.h"
+#include "bootutil/storage.h"
+#include "bootutil/knot_loader.h"
+#include "sysflash/sysflash.h"
 
 #ifdef CONFIG_MCUBOOT_SERIAL
 #include "boot_serial/boot_serial.h"
@@ -39,8 +56,6 @@ const struct boot_uart_funcs boot_funcs = {
     .write = console_write
 };
 #endif
-
-#include <bootutil/storage.h>
 
 MCUBOOT_LOG_MODULE_REGISTER(mcuboot);
 
@@ -71,6 +86,8 @@ static void do_boot(struct boot_rsp *rsp)
     vt = (struct arm_vector_table *)(flash_base +
                                      rsp->br_image_off +
                                      rsp->br_hdr->ih_hdr_size);
+
+
     irq_lock();
     sys_clock_disable();
 #ifdef CONFIG_BOOT_SERIAL_CDC_ACM
@@ -144,8 +161,6 @@ static void do_boot(struct boot_rsp *rsp)
 
     start = (void *)(flash_base + rsp->br_image_off +
                      rsp->br_hdr->ih_hdr_size);
-
-    /* Lock interrupts and dive into the entry point */
     irq_lock();
     ((void (*)(void))start)();
 }
@@ -155,14 +170,19 @@ void main(void)
 {
     struct boot_rsp rsp;
     int rc;
-    int8_t retfs;
-    struct net_settings curr_settings, rd_settings;
+    int button_pressed;
 
     BOOT_LOG_INF("Starting bootloader");
 
+    button_one_init();
     os_heap_init();
 
+<<<<<<< HEAD
 #if (!defined(CONFIG_XTENSA) && defined(DT_FLASH_DEV_NAME))
+=======
+#if defined(USE_NVS_KEY)
+
+>>>>>>> 63f2159... boot: zephyr: Modify mcuboot to handle GPIO and new loader
     if (!flash_device_get_binding(DT_FLASH_DEV_NAME)) {
         BOOT_LOG_ERR("Flash device %s not found", DT_FLASH_DEV_NAME);
         while (1)
@@ -199,9 +219,7 @@ void main(void)
             ;
 
     }
-
-    BOOT_LOG_INF("Mcuboot flash offset area: %x", MCUBOOT_STORAGE_OFFSET);
-    BOOT_LOG_INF("Boot area stored value = %d", rd_settings.setup);
+#endif
 
 #ifdef CONFIG_MCUBOOT_SERIAL
 
@@ -228,7 +246,17 @@ void main(void)
     }
 #endif
 
-    rc = boot_go(&rsp);
+    // read button 1 status
+    button_pressed = button_one_rd();
+    // if button 1 pressed then check scratch image
+    if ( button_pressed == 0)
+    {
+       BOOT_LOG_INF("Button 1 pressed");
+       rc = boot_go_scratch(&rsp);
+    }
+    else
+        rc = boot_go(&rsp);
+
     if (rc != 0) {
         BOOT_LOG_ERR("Unable to find bootable image");
         while (1)
@@ -238,7 +266,6 @@ void main(void)
     BOOT_LOG_INF("Bootloader chainload address offset: 0x%x",
                  rsp.br_image_off);
 
-    BOOT_LOG_INF("Jumping to the first image slot");
     do_boot(&rsp);
 
     BOOT_LOG_ERR("Never should get here");
