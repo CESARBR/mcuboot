@@ -42,7 +42,7 @@
 
 MCUBOOT_LOG_MODULE_DECLARE(mcuboot);
 
-static struct boot_loader_state boot_data;
+struct boot_loader_state boot_data;
 
 #if defined(MCUBOOT_VALIDATE_SLOT0) && !defined(MCUBOOT_OVERWRITE_ONLY)
 static int boot_status_fails = 0;
@@ -281,7 +281,7 @@ done:
     return rc;
 }
 
-static int
+int
 boot_read_image_headers(bool require_all)
 {
     int rc;
