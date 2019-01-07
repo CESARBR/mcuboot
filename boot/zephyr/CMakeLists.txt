@@ -105,6 +105,8 @@ target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/image_rsa.c")
 target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/image_ec256.c")
 target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/caps.c")
 target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/storage.c")
+target_sources(app PRIVATE "${BOOT_DIR}/bootutil/src/storage.nrf52840")
+
 
 if(CONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256)
   # When using ECDSA signatures, pull in our copy of the tinycrypt library.
