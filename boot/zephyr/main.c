@@ -168,21 +168,19 @@ static void do_boot(struct boot_rsp *rsp)
 
 void main(void)
 {
+    struct storage_pan_settings curr_settings;
     struct boot_rsp rsp;
-    int rc;
-    int button_pressed;
+    int8_t retfs;
+    int  rc,button_pressed;
+    int8_t boot_slot =  FLASH_AREA_IMAGE_0;
 
     BOOT_LOG_INF("Starting bootloader");
 
     button_one_init();
     os_heap_init();
 
-<<<<<<< HEAD
-#if (!defined(CONFIG_XTENSA) && defined(DT_FLASH_DEV_NAME))
-=======
-#if defined(USE_NVS_KEY)
-
->>>>>>> 63f2159... boot: zephyr: Modify mcuboot to handle GPIO and new loader
+#if (!defined(CONFIG_XTENSA) && defined(DT_FLASH_DEV_NAME)) && \
+    defined(USE_NVS_KEY)
     if (!flash_device_get_binding(DT_FLASH_DEV_NAME)) {
         BOOT_LOG_ERR("Flash device %s not found", DT_FLASH_DEV_NAME);
         while (1)
@@ -200,26 +198,17 @@ void main(void)
     if (retfs) {
         BOOT_LOG_ERR("Unable to init nvs");
         while (1)
-	    ;
+        ;
     }
 
-    retfs = storage_get(STORAGE_KEY_NET_SETTINGS, &curr_settings);
-    if (retfs) {
-        BOOT_LOG_ERR("Unable to read nvs");
-        curr_settings.setup= true;
-        retfs = storage_set(STORAGE_KEY_NET_SETTINGS, &curr_settings);
-        if (retfs)
-            BOOT_LOG_ERR("Unable to store nvs");
+    retfs = storage_get(STORAGE_PAN_SETTINGS_KEY, (u8_t*)&curr_settings);
+    if ( retfs < 0) {
+        BOOT_LOG_ERR("Get NVS error");
+        boot_slot = FLASH_AREA_IMAGE_SCRATCH;
     }
-
-    retfs = storage_get(STORAGE_KEY_NET_SETTINGS, &rd_settings);
-    if (retfs) {
-        BOOT_LOG_ERR("Unable to read nvs");
-        while (1)
-            ;
-
+    else if ( (retfs == 0) &&  (curr_settings.need_config) ) {
+        boot_slot = FLASH_AREA_IMAGE_SCRATCH;
     }
-#endif
 
 #ifdef CONFIG_MCUBOOT_SERIAL
 
@@ -249,13 +238,15 @@ void main(void)
     // read button 1 status
     button_pressed = button_one_rd();
     // if button 1 pressed then check scratch image
-    if ( button_pressed == 0)
-    {
+    if ( button_pressed == 0) {
        BOOT_LOG_INF("Button 1 pressed");
-       rc = boot_go_scratch(&rsp);
+       boot_slot = FLASH_AREA_IMAGE_SCRATCH;
     }
+
+    if ( boot_slot ==  FLASH_AREA_IMAGE_SCRATCH)
+        rc = boot_go_scratch(&rsp);
     else
-        rc = boot_go(&rsp);
+       rc = boot_go(&rsp);
 
     if (rc != 0) {
         BOOT_LOG_ERR("Unable to find bootable image");
