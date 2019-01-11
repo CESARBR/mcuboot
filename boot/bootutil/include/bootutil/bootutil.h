@@ -89,6 +89,10 @@ int boot_set_confirmed(void);
 int
 split_go(int loader_slot, int split_slot, void **entry);
 
+int boot_read_sectors(void);
+int boot_read_image_headers(bool require_all);
+int boot_read_image_header(int slot, struct image_header *out_hdr);
+
 #ifdef __cplusplus
 }
 #endif

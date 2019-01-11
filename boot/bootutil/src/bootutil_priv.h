@@ -205,7 +205,7 @@ int boot_read_enc_key(uint8_t slot, uint8_t *enckey);
 #define BOOT_SCRATCH_AREA(state) ((state)->scratch.area)
 #define BOOT_WRITE_SZ(state) ((state)->write_sz)
 
-static inline struct image_header*
+inline struct image_header*
 boot_img_hdr(struct boot_loader_state *state, size_t slot)
 {
     return &state->imgs[slot].hdr;

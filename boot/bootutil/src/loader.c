@@ -254,7 +254,7 @@ done:
 }
 #endif /* !MCUBOOT_OVERWRITE_ONLY */
 
-static int
+int
 boot_read_image_header(int slot, struct image_header *out_hdr)
 {
     const struct flash_area *fap;
@@ -415,7 +415,7 @@ boot_slots_compatible(void)
  * and copy during an image swap.  The information collected during this
  * function is used to populate the boot_data global.
  */
-static int
+int
 boot_read_sectors(void)
 {
     int rc;

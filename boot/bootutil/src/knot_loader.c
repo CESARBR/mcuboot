@@ -98,12 +98,8 @@
 
 static struct device *gpiob = NULL;
 
-// external functions/structs
-extern int boot_read_sectors(void);
-extern int boot_read_image_headers(bool require_all);
+// external structs
 extern struct boot_loader_state boot_data;
-extern inline struct image_header *boot_img_hdr(struct boot_loader_state *state, size_t slot);
-extern int boot_read_image_header(int slot, struct image_header *out_hdr);
 
 /**
  * Configure GPIO pin for button 1 of nrf52840_pca10056
